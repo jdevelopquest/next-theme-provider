@@ -1,24 +1,30 @@
 "use client";
 
-import { useThemeContext } from "@/lib/ui/theme-provider";
-import { ThemeParams } from "@/lib/ui/theme-provider";
+import { useThemeDispatch } from "@/lib/ui/theme-provider";
+import { StateTheme } from "@/lib/ui/theme-provider";
 
 interface ButtonParams {
-  themeParams: ThemeParams;
-  label: string;
+  theme: StateTheme;
+  attributs: {
+    label: string;
+    title: string;
+  };
 }
 
 export function ThemeSwitcher() {
-  const setThemeParams = useThemeContext();
+  const disptach = useThemeDispatch();
   const buttonParams: ButtonParams[] = [
     {
-      themeParams: { mode: "app", theme: "light" },
-      label: "🌞 Switch to Light",
+      theme: { mode: "app", value: "light" },
+      attributs: { label: "🌞 ", title: "Switch to Light" },
     },
-    { themeParams: { mode: "app", theme: "dark" }, label: "🌜 Switch to Dark" },
     {
-      themeParams: { mode: "system", theme: "system" },
-      label: "⚙️ Switch to System",
+      theme: { mode: "app", value: "dark" },
+      attributs: { label: "🌜 ", title: "Switch to Dark" },
+    },
+    {
+      theme: { mode: "system", value: "system" },
+      attributs: { label: "⚙️ ", title: "Switch to System" },
     },
   ];
   return (
@@ -26,10 +32,14 @@ export function ThemeSwitcher() {
       {buttonParams.map((params, index) => (
         <button
           key={index}
-          onClick={() => setThemeParams(params.themeParams)}
+          onClick={() =>
+            disptach({ type: "update", payload: params.theme })
+          }
           className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded hover:cursor-pointer"
+          title={params.attributs.title}
+          aria-label={params.attributs.label}
         >
-          {params.label}
+          {params.attributs.label}
         </button>
       ))}
     </div>
