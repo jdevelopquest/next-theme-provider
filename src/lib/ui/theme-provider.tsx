@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect, useContext } from "react";
 
-interface ThemeParams {
+export interface ThemeParams {
   mode: "app" | "system";
   theme: "light" | "dark" | "no-preference" | "system";
 }
