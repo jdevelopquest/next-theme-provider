@@ -1,20 +1,31 @@
 "use client";
 
-import { createContext, useEffect, useContext, useReducer } from "react";
+import {
+  createContext,
+  useEffect,
+  useEffectEvent,
+  useContext,
+  useReducer,
+} from "react";
 
 export interface ActionDispatch {
   type: string;
   payload: StateTheme;
 }
+
 export interface StateTheme {
   mode: "app" | "system";
-  value: "light" | "dark" | "no-preference" | "system";
+  value: "light" | "dark" | "no-preference" | "unknown";
 }
 
-const initialArg: StateTheme = { mode: "app", value: "light" };
+const initialArg: StateTheme = { mode: "system", value: "unknown" };
 
 function reducer(state: StateTheme, action: ActionDispatch): StateTheme {
-  return action.payload;
+  if (action.type === "update") {
+    return action.payload;
+  }
+
+  return state;
 }
 
 const ThemeContext = createContext<StateTheme>(initialArg);
@@ -33,23 +44,32 @@ export function useThemeDispatch() {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, dispatch] = useReducer(reducer, initialArg);
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme.value);
+  const handleChange = useEffectEvent(() => {
     if (theme.mode === "system") {
-      const md = window.matchMedia("(prefers-color-scheme: dark)");
-      const handleChange = (e: MediaQueryListEvent) => {
-        dispatch({
-          type: "system",
-          payload: { mode: "system", value: e.matches ? "dark" : "light" },
-        });
-      };
-      md.addEventListener("change", handleChange);
-      return () => {
-        md.removeEventListener("change", handleChange);
-      };
+      dispatch({
+        type: "update",
+        payload: { mode: "system", value: "unknown" },
+      });
     }
-    return () => {};
+  });
+
+  const getSystemTheme = () => {
+    const md = window.matchMedia("(prefers-color-scheme: dark)");
+    return md.matches ? "dark" : "light";
+  };
+
+  useEffect(() => {
+    const value = theme.value === "unknown" ? getSystemTheme() : theme.value;
+    document.documentElement.setAttribute("data-theme", value);
   }, [theme]);
+
+  useEffect(() => {
+    const mdd = window.matchMedia("(prefers-color-scheme: dark)");
+    mdd.addEventListener("change", handleChange);
+    return () => {
+      mdd.removeEventListener("change", handleChange);
+    };
+  }, []);
 
   return (
     <ThemeContext value={theme}>

@@ -23,7 +23,7 @@ export function ThemeSwitcher() {
       attributs: { label: "🌜 ", title: "Switch to Dark" },
     },
     {
-      theme: { mode: "system", value: "system" },
+      theme: { mode: "system", value: "unknown" },
       attributs: { label: "⚙️ ", title: "Switch to System" },
     },
   ];
