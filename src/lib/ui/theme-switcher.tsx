@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme, themeSwitcher } from "@/lib/ui/theme-provider";
+import { useTheme } from "@/lib/ui/theme-provider";
 
 interface ButtonParams {
   attributs: {
@@ -11,8 +11,7 @@ interface ButtonParams {
 }
 
 export function ThemeSwitcher() {
-  const { theme, dispatch } = useTheme();
-  const { switchToLight, switchToDark, switchToSystem } = themeSwitcher();
+  const [theme, switchToLight, switchToDark, switchToSystem] = useTheme();
 
   const buttonParams: ButtonParams[] = [
     {
