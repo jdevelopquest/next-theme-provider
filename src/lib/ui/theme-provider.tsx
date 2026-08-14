@@ -8,66 +8,81 @@ import {
   useReducer,
 } from "react";
 
-export interface ActionDispatch {
+interface ActionDispatch {
   type: string;
   payload: StateTheme;
 }
 
-export interface StateTheme {
+interface StateTheme {
   mode: "app" | "system";
-  value: "light" | "dark" | "no-preference" | "unknown";
+  value: "light" | "dark" | undefined;
 }
 
-const initialArg: StateTheme = { mode: "system", value: "unknown" };
+function initialStateTheme(): StateTheme {
+  return ({
+    mode: "system",
+    value: undefined,
+  });
+}
 
-function reducer(state: StateTheme, action: ActionDispatch): StateTheme {
+function reducerStateTheme(state: StateTheme,
+  action: ActionDispatch): StateTheme {
   if (action.type === "update") {
     return action.payload;
   }
-
   return state;
 }
 
-const ThemeContext = createContext<StateTheme>(initialArg);
+const ThemeContext = createContext<StateTheme>(initialStateTheme());
 const ThemeDispatchContext = createContext<(action: ActionDispatch) => void>(
   (action) => {},
 );
 
-export function useThemeContext() {
-  return useContext(ThemeContext);
-}
-
-export function useThemeDispatch() {
-  return useContext(ThemeDispatchContext);
+export function themeSwitcher() {
+  const dispatch = useContext(ThemeDispatchContext);
+  const switchToLight = () => {
+    dispatch({ type: "update", payload: { mode: "app", value: "light" } });
+  };
+  const switchToDark = () => {
+    dispatch({ type: "update", payload: { mode: "app", value: "dark" } });
+  };
+  const switchToSystem = () => {
+    dispatch({ type: "update", payload: { mode: "system", value: undefined } });
+  };
+  return { switchToLight, switchToDark, switchToSystem };
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, dispatch] = useReducer(reducer, initialArg);
+  const [theme, dispatch] = useReducer(reducerStateTheme, initialStateTheme());
 
-  const handleChange = useEffectEvent(() => {
-    if (theme.mode === "system") {
-      dispatch({
-        type: "update",
-        payload: { mode: "system", value: "unknown" },
-      });
-    }
-  });
+  const getThemeSystemMedia = () => {
+    return window.matchMedia("(prefers-color-scheme: dark)");
+  };
 
-  const getSystemTheme = () => {
-    const md = window.matchMedia("(prefers-color-scheme: dark)");
+  const getThemeSystem = () => {
+    const md = getThemeSystemMedia();
     return md.matches ? "dark" : "light";
   };
 
   useEffect(() => {
-    const value = theme.value === "unknown" ? getSystemTheme() : theme.value;
+    const value = theme.value === undefined ? getThemeSystem() : theme.value;
     document.documentElement.setAttribute("data-theme", value);
   }, [theme]);
 
+  const handleThemeSystemChange = useEffectEvent(() => {
+    if (theme.mode === "system") {
+      dispatch({
+        type: "update",
+        payload: { mode: "system", value: undefined },
+      });
+    }
+  });
+
   useEffect(() => {
-    const mdd = window.matchMedia("(prefers-color-scheme: dark)");
-    mdd.addEventListener("change", handleChange);
+    const md = getThemeSystemMedia();
+    md.addEventListener("change", handleThemeSystemChange);
     return () => {
-      mdd.removeEventListener("change", handleChange);
+      md.removeEventListener("change", handleThemeSystemChange);
     };
   }, []);
 
