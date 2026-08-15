@@ -8,66 +8,67 @@ import {
   useReducer,
 } from "react";
 
-export interface ActionDispatch {
-  type: string;
-  payload: StateTheme;
+type theme = { mode: "app" | "system"; value: "light" | "dark" | undefined };
+
+const ThemeContext = createContext<theme>({ mode: "system", value: undefined });
+const ThemeDispatchContext = createContext<
+  React.Dispatch<{ type: "set-theme"; payload: theme }>
+>(() => () => {});
+
+function reducer(
+  state: theme,
+  action: { type: "set-theme"; payload: theme },
+): theme {
+  return action.payload;
 }
 
-export interface StateTheme {
-  mode: "app" | "system";
-  value: "light" | "dark" | "no-preference" | "unknown";
-}
+export function useTheme(): [theme, () => void, () => void, () => void] {
+  const theme = useContext(ThemeContext);
+  const dispatch = useContext(ThemeDispatchContext);
+  const switchToLight = () =>
+    dispatch({ type: "set-theme", payload: { mode: "app", value: "light" } });
+  const switchToDark = () =>
+    dispatch({ type: "set-theme", payload: { mode: "app", value: "dark" } });
+  const switchToSystem = () =>
+    dispatch({
+      type: "set-theme",
+      payload: { mode: "system", value: undefined },
+    });
 
-const initialArg: StateTheme = { mode: "system", value: "unknown" };
-
-function reducer(state: StateTheme, action: ActionDispatch): StateTheme {
-  if (action.type === "update") {
-    return action.payload;
-  }
-
-  return state;
-}
-
-const ThemeContext = createContext<StateTheme>(initialArg);
-const ThemeDispatchContext = createContext<(action: ActionDispatch) => void>(
-  (action) => {},
-);
-
-export function useThemeContext() {
-  return useContext(ThemeContext);
-}
-
-export function useThemeDispatch() {
-  return useContext(ThemeDispatchContext);
+  return [theme, switchToLight, switchToDark, switchToSystem];
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, dispatch] = useReducer(reducer, initialArg);
+  const getColorScheme = useEffectEvent(() => {
+    const md = window.matchMedia("(prefers-color-scheme: dark)");
+    return md.matches ? "dark" : "light";
+  });
 
-  const handleChange = useEffectEvent(() => {
+  const [theme, dispatch] = useReducer(reducer, {
+    mode: "system",
+    value: undefined,
+  });
+
+  useEffect(() => {
+    // TODO: manage theme.value === undefined
+    const value = theme.mode === "system" ? getColorScheme() : theme.value!;
+    document.documentElement.setAttribute("data-theme", value);
+  }, [theme]);
+
+  const handleColorSchemeChange = useEffectEvent((e: MediaQueryListEvent) => {
     if (theme.mode === "system") {
       dispatch({
-        type: "update",
-        payload: { mode: "system", value: "unknown" },
+        type: "set-theme",
+        payload: { mode: "system", value: undefined },
       });
     }
   });
 
-  const getSystemTheme = () => {
+  useEffect(() => {
     const md = window.matchMedia("(prefers-color-scheme: dark)");
-    return md.matches ? "dark" : "light";
-  };
-
-  useEffect(() => {
-    const value = theme.value === "unknown" ? getSystemTheme() : theme.value;
-    document.documentElement.setAttribute("data-theme", value);
-  }, [theme]);
-
-  useEffect(() => {
-    const mdd = window.matchMedia("(prefers-color-scheme: dark)");
-    mdd.addEventListener("change", handleChange);
+    md.addEventListener("change", handleColorSchemeChange);
     return () => {
-      mdd.removeEventListener("change", handleChange);
+      md.removeEventListener("change", handleColorSchemeChange);
     };
   }, []);
 
