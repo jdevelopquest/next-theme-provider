@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next Theme Provider
 
-## Getting Started
+Un projet d'apprentissage pour explorer **React** et **Next.js** en implémentant un système de thème (light/dark/système).
 
-First, run the development server:
+## À quoi ça sert ?
+
+Combine un provider React Context avec Tailwind CSS pour gérer les thèmes dans une app Next.js 16. C'est une base pour comprendre :
+- React Context + useReducer
+- Client components ("use client")
+- Tailwind et dark mode
+- Gestion de `prefers-color-scheme`
+
+## Démarrage rapide
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvre [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/
+    page.tsx           Page d'accueil
+    layout.tsx         Root layout avec ThemeProvider
+  lib/
+    ui/
+      theme-provider.tsx    Context + hooks
+      theme-switcher.tsx    Boutons light/dark/system
+```
 
-## Learn More
+## Comment ça marche
 
-To learn more about Next.js, take a look at the following resources:
+1. **ThemeProvider** (contexte React) : gère l'état du thème
+2. **useTheme** (hook) : retourne l'état et les fonctions pour changer de thème
+3. **ThemeSwitcher** : composant avec 3 boutons (☀️ 🌙 ⚙️)
+4. **Tailwind** : `dark:` pour les styles mode sombre
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Next.js 16** + React 19
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Biome** (lint/format)
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev       # Dev server
+npm run build     # Build prod
+npm run start     # Run prod
+npm run lint      # Vérifier code
+npm run format    # Formater code
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+**Note** : C'est un exercice d'apprentissage. Pas pour la production.
